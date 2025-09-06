@@ -1,0 +1,118 @@
+---
+title: "HW1"
+output:
+  pdf_document: 
+  latex_engine: xelatex
+  html_document: default
+  header-includes:
+    - \usepackage{fontspec}
+---
+
+
+
+```{r packages}
+library(ggplot2)
+library(tidyverse)
+library(stringr)
+library(tinytex)
+```
+
+
+```{r Q1 read}
+drama <- read.csv("data/kdrama.csv")
+summary(drama)
+unique(drama) # 250
+```
+
+
+```{r Q2 list var}
+colnames(drama) # 17
+```
+
+
+```{r Q3}
+summary(drama$Number.of.Episodes) #19.06
+```
+
+
+```{r Q4 histogram}
+ggplot(drama) +
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )+
+  geom_hline(yintercept = c(0,10,20,30,40,50,60,70), alpha =.1)+
+  geom_vline(xintercept = c(8.25, 8.375, 8.5, 8.625, 8.75, 8.875, 9.0,9.175, 9.25), alpha=.1)+
+    geom_histogram(aes(x = Rating), bins = 20, fill = "darkslategray3", alpha =.9) +
+  labs(y = "Count",
+       title = "Rating of Korean Movies")
+```
+
+
+```{r Q5 n of shows > rating 9}
+nrow(drama %>%
+  filter(drama$Rating >=9))
+```
+
+```{r Q6 rename}
+drama <- drama %>%
+  rename(Year = Year.of.release)
+```
+
+```{r Q7 2020-2022}
+nrow(drama %>%
+       filter(drama$Year>=2020 & drama$Year<=2022))
+```
+
+```{r Q8 type of Duration var} 
+glimpse(drama$Duration) #chr
+unique(drama$Duration) 
+```
+
+```{r Q9 recode}
+
+min_func <- function(x){
+  h <- as.numeric(str_extract(x,"\\d+(?=\\s*(?:hr)\\b)")); h[is.na(h)] <- 0
+  m <- as.numeric(str_extract(x,"\\d+(?=\\s*(?:min)\\b)")); m[is.na(m)] <- 0
+  h*60 +m
+}
+
+drama <- drama %>%
+  mutate(duration_min = min_func(Duration))
+
+ggplot(drama)+
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  geom_hline(yintercept = c(0,10,20,30,40,50,60), alpha =.1)+
+  geom_vline(xintercept = c(0,12.5,25,37.5,50,62.5,75,87.5,100),alpha=.1)+
+  geom_histogram(aes(x=duration_min), bins = 20, fill = "deeppink2", alpha =.7)+
+  labs(y = "Count",
+       x = "Duration of Minutes",
+       title = "Duration of Movies")
+
+```
+
+```{r Q10 netflix}
+netflix <- drama %>%
+  filter(str_detect(Original.Network, "Netflix"))
+```
+
+```{r Q11 average rating}
+summary(netflix$Rating) # 8.662
+```
+
+```{r}
+rmarkdown::render(
+  "hw1.Rmd",
+  output_format = rmarkdown::pdf_document(latex_engine = "xelatex"),
+  clean = TRUE,
+  envir = new.env()
+)
+```
+
+
+
